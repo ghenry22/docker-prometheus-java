@@ -1,7 +1,7 @@
 # Pre-requisites
- Install docker
- If running on linux uncomment the few lines in the compose file that are for MAC support
- Note tested on Windows as I don't have a windows box handy but should also work fine.
+ * Install docker
+ * If running on linux uncomment the few lines in the compose file that are for MAC support.
+ * Not tested on Windows as I don't have a windows box handy but should also work fine.
 
 # docker-prometheus-java
  test out prometheus / grafana / java in docker
