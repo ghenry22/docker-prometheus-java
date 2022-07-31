@@ -9,10 +9,6 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
-    environment:
-      - PUID=100
-      - PGID=100
-      - TZ=Asia/Singapore
     volumes:
       - ./data/prometheus/config:/etc/prometheus
       - ./data/prometheus/data:/prometheus
@@ -30,15 +26,34 @@ services:
       timeout: 10s
       retries: 5
 #
+# Grafana - data vizualization
+#
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=Password123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./data/grafana/config:/etc/grafana/provisioning
+      - ./data/grafana/data:/var/lib/grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    networks:
+      - test-docker-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+#
 # Alertmanager - trigger alerts for various conditions to various channels
 #
   alertmanager:
     image: prom/alertmanager:latest
     container_name: alertmanager
-    environment:
-      - PUID=100
-      - PGID=100
-      - TZ=Asia/Singapore
     volumes:
       - ./data/alertmanager/config:/etc/alertmanager
       - ./data/alertmanager/data:/alertmanager
@@ -61,10 +76,6 @@ services:
   nodeexporter:
     image: prom/node-exporter:latest
     container_name: nodeexporter
-    environment:
-      - PUID=100
-      - PGID=100
-      - TZ=Asia/Singapore
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -85,24 +96,41 @@ services:
       timeout: 10s
       retries: 5
 #
-# Grafana - data visualization
+# Pushgateway - push metrics for jobs that cannot be scraped (ie from batch jobs etc)
 #
-  # grafana:
-  #   image: prom/prometheus:latest
-  #   container_name: prometheus
-  #   environment:
-  #     - PUID=1026
-  #     - PGID=100
-  #     - TZ=Asia/Singapore
-  #   volumes:
-  #     - ./data/prometheus:/etc/prometheus
-  #   ports:
-  #     - 9090:9090
-  #   restart: unless-stopped
-  #   networks:
-  #     - test-docker-net
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:9090"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
+  pushgateway:
+    image: prom/push-gateway:latest
+    container_name: pushgateway
+    ports:
+      - 9091:9091
+    restart: unless-stopped
+    networks:
+      - test-docker-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+#
+# Cadvisor - collect container stats
+#
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    volumes:
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /dev/disk/:/dev/disk:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      #- /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
+      #- /:/rootfs:ro #DOES NOT WORK ON MAC, uncomment on Linux
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    networks:
+      - test-docker-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
