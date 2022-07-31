@@ -68,13 +68,13 @@ services:
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
-      - /:/rootfs:ro
+      # - /:/rootfs:ro #DOES NOT WORK ON MAC, uncomment on Linux
     ports:
       - 9100:9100
     command:
       - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
+      # - '--path.rootfs=/rootfs' #DOES NOT WORK ON MAC, uncomment on Linux
       - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
     restart: unless-stopped
     networks:
@@ -84,7 +84,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
 #
 # Grafana - data visualization
 #
