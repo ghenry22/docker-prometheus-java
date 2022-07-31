@@ -20,11 +20,6 @@ services:
     restart: unless-stopped
     networks:
       - test-docker-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9090"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 #
 # Grafana - data vizualization
 #
@@ -43,11 +38,17 @@ services:
     restart: unless-stopped
     networks:
       - test-docker-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+#
+# Java17 - run app with java 17 JDK
+#
+  serverapp:
+    build: ./
+    container_name: serverapp
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    networks:
+      - test-docker-net
 #
 # Alertmanager - trigger alerts for various conditions to various channels
 #
@@ -65,11 +66,6 @@ services:
     restart: unless-stopped
     networks:
       - test-docker-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9093"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 #
 # Nodeexporter - export system metrics for prometheus
 #
@@ -90,27 +86,17 @@ services:
     restart: unless-stopped
     networks:
       - test-docker-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9100"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 #
 # Pushgateway - push metrics for jobs that cannot be scraped (ie from batch jobs etc)
 #
   pushgateway:
-    image: prom/push-gateway:latest
+    image: prom/pushgateway:latest
     container_name: pushgateway
     ports:
       - 9091:9091
     restart: unless-stopped
     networks:
       - test-docker-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9091"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 #
 # Cadvisor - collect container stats
 #
@@ -125,12 +111,7 @@ services:
       #- /cgroup:/cgroup:ro #doesn't work on MacOS only for Linux
       #- /:/rootfs:ro #DOES NOT WORK ON MAC, uncomment on Linux
     ports:
-      - 8080:8080
+      - 8081:8080
     restart: unless-stopped
     networks:
       - test-docker-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
